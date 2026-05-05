@@ -58,7 +58,7 @@ function formatDate(date) {
  * @return {integer} The closest valid value to the intended frequency setting. Defaulting to 15 if no valid input is provided.
  */
 function getValidTriggerFrequency(origFrequency) {
-  if (!origFrequency > 0) {
+  if (!(origFrequency > 0)) {
     Logger.log("No valid frequency specified. Defaulting to 15 minutes.");
     return 15;
   }
@@ -77,10 +77,6 @@ function getValidTriggerFrequency(origFrequency) {
     "Intended frequency = " + origFrequency + ", Adjusted frequency = " + roundedUpValue
   );
   return roundedUpValue;
-}
-
-String.prototype.includes = function(phrase){
-  return this.indexOf(phrase) > -1;
 }
 
 /**
@@ -245,7 +241,7 @@ function parseResponses(responses){
 
   result.forEach(function(event){
     if (!event.hasProperty('uid')){
-      event.updatePropertyWithValue('uid', Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, event.toString()).toString(), Utilities.Charset.UTF_8);
+      event.updatePropertyWithValue('uid', Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, event.toString()).toString());
     }
     if(event.hasProperty('recurrence-id')){
       let recID = new ICAL.Time.fromString(event.getFirstPropertyValue('recurrence-id').toString(), event.getFirstProperty('recurrence-id'));
@@ -1147,7 +1143,7 @@ function parseAttendeeResp(veventString){
     else if (['DECLINED'].indexOf(respMatch[2].toUpperCase()) > -1) {
       respMatch[2] = 'declined';
     }
-    else if (['DELEGATED', 'IN-PROCESS', 'TENTATIVE'].indexOf(respMatch[2].toUpperCase())) {
+    else if (['DELEGATED', 'IN-PROCESS', 'TENTATIVE'].indexOf(respMatch[2].toUpperCase()) !== -1) {
       respMatch[2] = 'tentative';
     }
     else {
@@ -1183,7 +1179,7 @@ function parseNotificationTime(notificationString){
   var weekMatch = RegExp("\\d+W", "g").exec(notificationString);
 
   if (weekMatch != null){
-    reminderTime += parseInt(weekMatch[0].slice(0, -1)) & 7 * 24 * 60; //Remove the "W" off the end
+    reminderTime += parseInt(weekMatch[0].slice(0, -1)) * 7 * 24 * 60; //Remove the "W" off the end
 
     return reminderTime; //Return the notification time in minutes
   }
@@ -1205,7 +1201,6 @@ function parseNotificationTime(notificationString){
 * Sends an email summary with added/modified/deleted events.
 */
 function sendSummary() {
-  var subject;
   var body;
 
   var subject = `${customEmailSubject ? customEmailSubject : "GAS-ICS-Sync Execution Summary"}: ${addedEvents.length} new, ${modifiedEvents.length} modified, ${removedEvents.length} deleted`;
@@ -1311,8 +1306,7 @@ function callWithBackoff(func, maxRetries) {
         return null;
       } else {
         Logger.log( "Error, Retrying... [" + err  +"]");
-        Utilities.sleep (Math.pow(2,tries)*100) +
-                            (Math.round(Math.random() * 100));
+        Utilities.sleep(Math.pow(2,tries)*100 + Math.round(Math.random() * 100));
       }
     }
   }
