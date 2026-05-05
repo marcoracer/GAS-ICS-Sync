@@ -16,6 +16,10 @@ All notable changes to this fork of GAS-ICS-Sync will be documented in this file
 - **Duplicate variable declaration**: Removed duplicate `var subject` in `sendSummary`.
 - **Extra argument in updatePropertyWithValue**: Removed the third unused `Utilities.Charset.UTF_8` argument.
 
+### Added
+
+- **cleanupDuplicates utility**: New `cleanupDuplicates()` function to safely remove all script-created events (tagged with `fromGAS=true`) from a specified calendar. Requires explicitly setting `calendarToCleanup` variable before running to prevent accidental execution.
+
 ### Credits
 
 - Concurrency fix inspired by PR [#504](https://github.com/derekantrican/GAS-ICS-Sync/pull/504) by @pedrocarvalhlima

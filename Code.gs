@@ -260,3 +260,50 @@ function startSync(){
     throw new Error('The sync operation produced errors. See log for details.');
   }
 }
+
+/**
+ * Removes all script-created events (tagged with fromGAS=true) from the specified calendar.
+ * Useful for cleaning up duplicates after switching target calendars.
+ * Set calendarToCleanup to the calendar name you want to clean, then run this function once.
+ *
+ * IMPORTANT: Set calendarToCleanup to the target calendar name before running.
+ *            Reset to empty string after use to prevent accidental execution.
+ */
+var calendarToCleanup = ""; // Set this to the calendar name to clean up, e.g. "My Old Calendar"
+function cleanupDuplicates() {
+  if (calendarToCleanup == "") {
+    Logger.log("Set calendarToCleanup variable to the calendar name you want to clean before running.");
+    return;
+  }
+
+  var calendar = Calendar.CalendarList.list({showHidden: true, maxResults: 250}).items.filter(function(cal) {
+    return ((cal.summaryOverride || cal.summary) == calendarToCleanup) &&
+           (cal.accessRole == "owner" || cal.accessRole == "writer");
+  })[0];
+
+  if (!calendar) { Logger.log("Calendar not found: " + calendarToCleanup); return; }
+
+  var pageToken;
+  var count = 0;
+  do {
+    var events = Calendar.Events.list(calendar.id, {
+      showDeleted: false,
+      privateExtendedProperty: "fromGAS=true",
+      maxResults: 2500,
+      pageToken: pageToken
+    });
+
+    for (var i = 0; i < events.items.length; i++) {
+      try {
+        Logger.log("Deleting: " + events.items[i].summary);
+        Calendar.Events.remove(calendar.id, events.items[i].id);
+        count++;
+      } catch (e) {
+        Logger.log("Skipped (already deleted): " + events.items[i].summary);
+      }
+    }
+    pageToken = events.nextPageToken;
+  } while (pageToken);
+
+  Logger.log("Deleted " + count + " events from " + calendarToCleanup);
+}
